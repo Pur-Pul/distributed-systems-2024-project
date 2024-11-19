@@ -48,9 +48,9 @@ const renderCheckboxes = (state) => {
 
     const handleCheck = async (event) => {
         const index = event.target.getAttribute('data-index')
-        console.log(index);
         event.target.checked = event.target.checked
-        checkboxService.check(index)
+        const result = await checkboxService.check(index)
+        state[result.index] = result.value
     }
 
     for (let i = startIndex; i < endIndex; i++) {
@@ -69,7 +69,8 @@ const renderCheckboxes = (state) => {
             checkbox.className = 'checkbox';
             checkbox.dataset.index = i;
             checkbox.onclick = handleCheck
-            checkbox.checked = Boolean(parseInt(state.charAt(i)))
+            
+            checkbox.checked = Boolean(state[i])
 
             checkbox.style.left = left;
             checkbox.style.top = top;
@@ -81,22 +82,21 @@ const renderCheckboxes = (state) => {
 };
 
 let scrollTimeout;
-let state;
-
+let state = (await checkboxService.state()).state.split('')
+state = state.map((char) => parseInt(char))
 const handleScroll = () => {
     if (scrollTimeout) {
         cancelAnimationFrame(scrollTimeout);
     }
     scrollTimeout = requestAnimationFrame(() => {
-        renderCheckboxes();
+        renderCheckboxes(state);
     });
 };
 
 const handleResize = () => {
-    renderCheckboxes();
+    renderCheckboxes(state);
 };
 
 window.addEventListener('scroll', handleScroll);
 window.addEventListener('resize', handleResize);
-state = (await checkboxService.state()).state
 renderCheckboxes(state);
