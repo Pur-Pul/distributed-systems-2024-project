@@ -1,3 +1,5 @@
+import checkboxService from './services/checkbox.js';
+
 const grid = document.getElementById('grid');
 const content = document.getElementById('content');
 
@@ -14,7 +16,7 @@ const getBoxesPerRow = () => {
     return Math.floor(grid.clientWidth / CHECKBOX_SPACE);
 };
 
-const renderCheckboxes = () => {
+const renderCheckboxes = (state) => {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const windowHeight = window.innerHeight;
     const contentTop = grid.offsetTop;
@@ -44,6 +46,13 @@ const renderCheckboxes = () => {
         }
     });
 
+    const handleCheck = async (event) => {
+        const index = event.target.getAttribute('data-index')
+        console.log(index);
+        event.target.checked = event.target.checked
+        checkboxService.check(index)
+    }
+
     for (let i = startIndex; i < endIndex; i++) {
         const col = i % boxesPerRow;
         const row = Math.floor(i / boxesPerRow);
@@ -59,6 +68,8 @@ const renderCheckboxes = () => {
             checkbox.type = 'checkbox';
             checkbox.className = 'checkbox';
             checkbox.dataset.index = i;
+            checkbox.onclick = handleCheck
+            checkbox.checked = Boolean(parseInt(state.charAt(i)))
 
             checkbox.style.left = left;
             checkbox.style.top = top;
@@ -70,6 +81,7 @@ const renderCheckboxes = () => {
 };
 
 let scrollTimeout;
+let state;
 
 const handleScroll = () => {
     if (scrollTimeout) {
@@ -86,4 +98,5 @@ const handleResize = () => {
 
 window.addEventListener('scroll', handleScroll);
 window.addEventListener('resize', handleResize);
-renderCheckboxes();
+state = (await checkboxService.state()).state
+renderCheckboxes(state);
