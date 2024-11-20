@@ -1,8 +1,5 @@
-import checkboxService from './services/checkbox.js';
-
 const grid = document.getElementById('grid');
 const content = document.getElementById('content');
-
 const TOTAL_CHECKBOXES = 1_000_000;
 const CHECKBOX_SIZE = 20;
 const GAP = 2; 
@@ -16,11 +13,11 @@ const getBoxesPerRow = () => {
     return Math.floor(grid.clientWidth / CHECKBOX_SPACE);
 };
 
-const renderCheckboxes = (state) => {
+const renderCheckboxes = (state, flask_write) => {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const windowHeight = window.innerHeight;
     const contentTop = grid.offsetTop;
-
+    
     boxesPerRow = getBoxesPerRow();
 
     const totalRows = Math.ceil(TOTAL_CHECKBOXES / boxesPerRow);
@@ -49,8 +46,7 @@ const renderCheckboxes = (state) => {
     const handleCheck = async (event) => {
         const index = event.target.getAttribute('data-index')
         event.target.checked = event.target.checked
-        const result = await checkboxService.check(index)
-        state[result.index] = result.value
+        flask_write.emit('write', {data: index});
     }
 
     for (let i = startIndex; i < endIndex; i++) {
@@ -82,21 +78,37 @@ const renderCheckboxes = (state) => {
 };
 
 let scrollTimeout;
-let state = (await checkboxService.state()).state.split('')
-state = state.map((char) => parseInt(char))
+let state;
+const flask_write = io('http://localhost:5000/write')
+flask_write.on('update', (data) => {
+    console.log(data);
+    const result = data
+    state[result.index] = result.value
+});
+
 const handleScroll = () => {
     if (scrollTimeout) {
         cancelAnimationFrame(scrollTimeout);
     }
     scrollTimeout = requestAnimationFrame(() => {
-        renderCheckboxes(state);
+        renderCheckboxes(state, flask_write);
     });
 };
 
 const handleResize = () => {
-    renderCheckboxes(state);
+    renderCheckboxes(state, flask_write);
 };
 
 window.addEventListener('scroll', handleScroll);
 window.addEventListener('resize', handleResize);
-renderCheckboxes(state);
+
+const flask_update = io('http://localhost:5000/state')
+flask_update.on('connect', function() {
+    flask_update.emit('state', {data: 'state'});
+});
+
+flask_update.on("state", (msg) => {
+    state = msg.split('')
+    state = state.map((char) => parseInt(char))
+    renderCheckboxes(state, flask_write);
+});
