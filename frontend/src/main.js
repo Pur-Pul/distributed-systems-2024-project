@@ -79,13 +79,8 @@ const renderCheckboxes = (state, flask_write) => {
 
 let scrollTimeout;
 let state;
-const flask_write = io('http://localhost:5000/write')
-flask_write.on('update', (data) => {
-    console.log(data);
-    const result = data
-    state[result.index] = result.value
-    renderedCheckboxes[result.index].checked = result.value
-});
+const flask_write = io('http://localhost:5001/write')
+
 
 const handleScroll = () => {
     if (scrollTimeout) {
@@ -103,7 +98,7 @@ const handleResize = () => {
 window.addEventListener('scroll', handleScroll);
 window.addEventListener('resize', handleResize);
 
-const flask_update = io('http://localhost:5000/state')
+const flask_update = io('http://localhost:5002/state')
 flask_update.on('connect', function() {
     flask_update.emit('state', {data: 'state'});
 });
@@ -112,4 +107,11 @@ flask_update.on("state", (msg) => {
     state = msg.split('')
     state = state.map((char) => parseInt(char))
     renderCheckboxes(state, flask_write);
+});
+
+flask_update.on('update', (data) => {
+    console.log(data);
+    const result = data
+    state[result.index] = result.value
+    renderedCheckboxes[result.index].checked = result.value
 });

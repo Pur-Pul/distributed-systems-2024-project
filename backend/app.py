@@ -7,17 +7,19 @@ from bitstring import BitArray
 from flask_socketio import Namespace, emit, SocketIO
 
 app =  Flask(__name__)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app, origins=["http://localhost:5001", "http://localhost:5002", "http://localhost:5173"])
 redis_cache = redis.Redis()
-socketio = SocketIO(app, cors_allowed_origins=['http://localhost:5173'])
+socketio = SocketIO(app, cors_allowed_origins=["http://localhost:5001", "http://localhost:5002", "http://localhost:5000"], logger=True)
 
 @app.route("/", methods=['GET'])
 def index():
+    print("index function")
     response = jsonify({'state' : BitArray(redis_cache.get('state')).bin})
     return response
 
 @app.route("/update/<int:index>", methods=['POST'])
 def update(index):
+    print("update function")
     value = redis_cache.getbit('state', index)
     value = (value+1) % 2
     redis_cache.setbit('state', index, value)
@@ -47,14 +49,14 @@ def handle_write_connect():
     print('Client disconnected from write')
     write_clients.remove(request.sid)
 
-@socketio.on('state', namespace='/state')
+@socketio.on('state')#, namespace='/state')
 def handle_state(json):
     print('received json: ' + str(json))
     chunk_index = json['data']
     response = BitArray(redis_cache.get(chunk_index)).bin
     emit('state', response)
 
-@socketio.on('write', namespace='/write')
+@socketio.on('write')#, namespace='/write')
 def handle_write(json):
     print('received json: ' + str(json))
     index = int(json['data'])
