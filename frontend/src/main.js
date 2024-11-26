@@ -102,6 +102,7 @@ const handleResize = () => {
 
 window.addEventListener('scroll', handleScroll);
 window.addEventListener('resize', handleResize);
+window.addEventListener('load', handleResize);
 
 const flask_update = io('http://localhost:5000/state')
 flask_update.on('connect', function() {
