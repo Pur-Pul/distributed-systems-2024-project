@@ -13,3 +13,8 @@ How to run backend:
 - create a python virtual environment and enter it
 - install requirements in venv `pip install -r requirements.txt`
 - start the backend with `flask run`
+
+- the flask servers need to start in a specific order with specified port numbers
+- first the backend with port 5000
+- then flask update with port 5002
+- then flask write with port 5001
