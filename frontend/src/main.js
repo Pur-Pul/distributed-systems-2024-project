@@ -13,7 +13,7 @@ const getBoxesPerRow = () => {
     return Math.floor(grid.clientWidth / CHECKBOX_SPACE);
 };
 
-const renderCheckboxes = (state, flask_write) => {
+const renderCheckboxes = (state, flask) => {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const windowHeight = window.innerHeight;
     const contentTop = grid.offsetTop;
@@ -46,7 +46,7 @@ const renderCheckboxes = (state, flask_write) => {
     const handleCheck = async (event) => {
         const index = event.target.getAttribute('data-index')
         event.target.checked = event.target.checked
-        flask_write.emit('write', {data: index});
+        flask.emit('write', {data: index});
     }
 
     for (let i = startIndex; i < endIndex; i++) {
@@ -79,8 +79,19 @@ const renderCheckboxes = (state, flask_write) => {
 
 let scrollTimeout;
 let state;
-const flask_write = io('http://localhost:5000/write')
-flask_write.on('update', (data) => {
+const flask = io('http://localhost:5000')
+
+flask.on('connect', function() {
+    flask.emit('state', {data: 'state'});
+});
+
+flask.on("state", (msg) => {
+    state = msg.split('').map((char) => parseInt(char))
+    renderCheckboxes(state, flask);
+    teleportToRandomIndex();
+});
+
+flask.on('update', (data) => {
     console.log(data);
     const result = data
     state[result.index] = result.value
@@ -104,25 +115,13 @@ const handleScroll = () => {
         cancelAnimationFrame(scrollTimeout);
     }
     scrollTimeout = requestAnimationFrame(() => {
-        renderCheckboxes(state, flask_write);
+        renderCheckboxes(state, flask);
     });
 };
 
 const handleResize = () => {
-    renderCheckboxes(state, flask_write);
+    renderCheckboxes(state, flask);
 };
 
 window.addEventListener('scroll', handleScroll);
 window.addEventListener('resize', handleResize);
-
-const flask_update = io('http://localhost:5000/state')
-flask_update.on('connect', function() {
-    flask_update.emit('state', {data: 'state'});
-});
-
-flask_update.on("state", (msg) => {
-    state = msg.split('')
-    state = state.map((char) => parseInt(char))
-    renderCheckboxes(state, flask_write);
-    teleportToRandomIndex();
-});

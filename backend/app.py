@@ -24,37 +24,22 @@ def update(index):
     response = jsonify({'index' : index, 'value' : value})
     return response
 
-write_clients = []
-update_clients = []
-
-@socketio.on('connect', namespace='/state')
+@socketio.on('connect')
 def handle_state_connect():
-    print('Client connected to state')
-    update_clients.append(request.sid)
+    print('Client connected')
 
-@socketio.on('connect', namespace='/write')
-def handle_write_connect():
-    print('Client connected to write')
-    write_clients.append(request.sid)
-
-@socketio.on('disconnect', namespace='/state')
+@socketio.on('disconnect')
 def handle_state_connect():
-    print('Client disconnected from state')
-    update_clients.remove(request.sid)
+    print('Client disconnected')
 
-@socketio.on('disconnect', namespace='/write')
-def handle_write_connect():
-    print('Client disconnected from write')
-    write_clients.remove(request.sid)
-
-@socketio.on('state', namespace='/state')
+@socketio.on('state')
 def handle_state(json):
     print('received json: ' + str(json))
     chunk_index = json['data']
     response = BitArray(redis_cache.get(chunk_index)).bin
     emit('state', response)
 
-@socketio.on('write', namespace='/write')
+@socketio.on('write')
 def handle_write(json):
     print('received json: ' + str(json))
     index = int(json['data'])
