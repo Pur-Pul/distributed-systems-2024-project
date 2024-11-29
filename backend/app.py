@@ -10,6 +10,7 @@ from flask_socketio import Namespace, emit, SocketIO
 
 app =  Flask(__name__)
 current_port = int(os.getenv("FLASK_RUN_PORT"))
+peer_port = 5000 if current_port == 5001 else 5001 
 CORS(app, origins=["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"])
 redis_cache = redis.Redis()
 socketio = SocketIO(app, cors_allowed_origins=["http://localhost:5001", "http://localhost:5002", "http://localhost:5173"])
@@ -24,8 +25,9 @@ def update(index):
     value = redis_cache.getbit('state', index)
     value = (value+1) % 2
     redis_cache.setbit('state', index, value)
-    response = jsonify({'index' : index, 'value' : value})
-    return response
+    response = {'index': index, 'value': value}
+    socketio.emit('update', response)
+    return jsonify(response)
 
 @socketio.on('connect')
 def handle_state_connect():
@@ -46,6 +48,13 @@ def handle_state(json):
 def handle_write(json):
     print('received json: ' + str(json))
     index = int(json['data'])
+    if index > 500_000 and current_port == 5000:
+        peer_url = f"http://localhost:{peer_port}/update/{index}"
+        peer_response =requests.post(peer_url)
+        if peer_response.status_code == 200:
+            response_data = peer_response.json()
+            emit('update', response_data, broadcast=True)
+        return
     value = redis_cache.getbit('state', index)
     value = (value + 1) % 2
     redis_cache.setbit('state', index, value)
@@ -54,7 +63,6 @@ def handle_write(json):
     notify_peer(index, value)
 
 def notify_peer(index, value):
-    peer_port = 5000 if current_port == 5001 else 5001
     peer_url = f"http://localhost:{peer_port}/notify"
     data = {'index': index, 'value': value}
     requests.post(peer_url, json=data)
