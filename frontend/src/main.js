@@ -87,6 +87,18 @@ flask_write.on('update', (data) => {
     renderedCheckboxes[result.index].checked = result.value
 });
 
+const teleportToRandomIndex = () => {
+    const randomIndex = Math.floor(Math.random() * TOTAL_CHECKBOXES);
+    boxesPerRow = getBoxesPerRow(); 
+    const row = Math.floor(randomIndex / boxesPerRow);
+    const targetScrollTop = (row * CHECKBOX_SPACE) + grid.offsetTop;
+
+    window.scrollTo({
+        top: targetScrollTop,
+        behavior: 'auto',
+    });
+};
+
 const handleScroll = () => {
     if (scrollTimeout) {
         cancelAnimationFrame(scrollTimeout);
@@ -102,7 +114,6 @@ const handleResize = () => {
 
 window.addEventListener('scroll', handleScroll);
 window.addEventListener('resize', handleResize);
-window.addEventListener('load', handleResize);
 
 const flask_update = io('http://localhost:5000/state')
 flask_update.on('connect', function() {
@@ -113,4 +124,5 @@ flask_update.on("state", (msg) => {
     state = msg.split('')
     state = state.map((char) => parseInt(char))
     renderCheckboxes(state, flask_write);
+    teleportToRandomIndex();
 });
