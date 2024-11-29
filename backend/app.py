@@ -2,14 +2,17 @@ import redis
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from bitstring import BitArray
+import os
+import requests
 
 
 from flask_socketio import Namespace, emit, SocketIO
 
 app =  Flask(__name__)
-CORS(app, origins=["http://localhost:5173"])
+current_port = int(os.getenv("FLASK_RUN_PORT"))
+CORS(app, origins=["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"])
 redis_cache = redis.Redis()
-socketio = SocketIO(app, cors_allowed_origins=['http://localhost:5173'])
+socketio = SocketIO(app, cors_allowed_origins=["http://localhost:5001", "http://localhost:5002", "http://localhost:5173"])
 
 @app.route("/", methods=['GET'])
 def index():
@@ -48,3 +51,20 @@ def handle_write(json):
     redis_cache.setbit('state', index, value)
     response = {'index' : index, 'value' : value}
     emit('update', response, broadcast = True)
+    notify_peer(index, value)
+
+def notify_peer(index, value):
+    peer_port = 5000 if current_port == 5001 else 5001
+    peer_url = f"http://localhost:{peer_port}/notify"
+    data = {'index': index, 'value': value}
+    requests.post(peer_url, json=data)
+
+@app.route("/notify", methods=["POST"])
+def notify():
+    data = request.get_json()
+    print('received notify data: ', data)
+    index = data['index']
+    value = data['value']
+    response = {'index': index, 'value': value}
+    socketio.emit('update', response)
+    return response

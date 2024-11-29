@@ -79,7 +79,14 @@ const renderCheckboxes = (state, flask) => {
 
 let scrollTimeout;
 let state;
-const flask = io('http://localhost:5000')
+let initialIndex = Math.floor(Math.random() * TOTAL_CHECKBOXES);
+let flask;
+if (initialIndex <= 500_000) {
+    flask = io('http://localhost:5000')
+} else {
+    flask = io('http://localhost:5001')
+}
+
 
 flask.on('connect', function() {
     flask.emit('state', {data: 'state'});
@@ -99,9 +106,8 @@ flask.on('update', (data) => {
 });
 
 const teleportToRandomIndex = () => {
-    const randomIndex = Math.floor(Math.random() * TOTAL_CHECKBOXES);
     boxesPerRow = getBoxesPerRow(); 
-    const row = Math.floor(randomIndex / boxesPerRow);
+    const row = Math.floor(initialIndex / boxesPerRow);
     const targetScrollTop = (row * CHECKBOX_SPACE) + grid.offsetTop;
 
     window.scrollTo({
