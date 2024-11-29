@@ -102,7 +102,9 @@ flask.on('update', (data) => {
     console.log(data);
     const result = data
     state[result.index] = result.value
-    renderedCheckboxes[result.index].checked = result.value
+    if (renderedCheckboxes[result.index]) {
+        renderedCheckboxes[result.index].checked = result.value;
+    }
 });
 
 const teleportToRandomIndex = () => {

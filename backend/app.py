@@ -48,7 +48,7 @@ def handle_state(json):
 def handle_write(json):
     print('received json: ' + str(json))
     index = int(json['data'])
-    if index > 500_000 and current_port == 5000:
+    if (index > 500_000 and current_port == 5000) or (index < 500_000 and current_port == 5001):
         peer_url = f"http://localhost:{peer_port}/update/{index}"
         peer_response =requests.post(peer_url)
         if peer_response.status_code == 200:
