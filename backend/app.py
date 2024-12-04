@@ -8,7 +8,7 @@ import os
 import requests
 import redis
 
-load_dotenv():
+load_dotenv()
   
 
 redis_url = urlparse(os.environ.get("REDIS_URL"))
