@@ -82,20 +82,20 @@ let state;
 let initialIndex = Math.floor(Math.random() * TOTAL_CHECKBOXES);
 let flask;
 if (initialIndex <= 500_000) {
-    console.log(process.env.FLASK1_URL);
-    console.log(process.env.FLASK2_URL);
+    console.log(import.meta.env.VITE_FLASK1_URL);
+    console.log(import.meta.env.VITE_FLASK2_URL);
     
     
 
-    if (process.env.FLASK1_URL) {
-        flask = io(process.env.FLASK1_URL)
+    if (import.meta.env.VITE_FLASK1_URL) {
+        flask = io(import.meta.env.VITE_FLASK1_URL)
     } else {
         flask = io('http://localhost:5000')
     }
         
 } else {
-    if (process.env.FLASK2_URL) {
-        flask = io(process.env.FLASK2_URL)
+    if (import.meta.env.VITE_FLASK2_URL) {
+        flask = io(import.meta.env.VITE_FLASK2_URL)
     } else {
         flask = io('http://localhost:5001')
     }
