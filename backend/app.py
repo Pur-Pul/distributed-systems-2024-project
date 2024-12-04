@@ -14,7 +14,7 @@ if load_dotenv():
     current_port = int(os.getenv("FLASK_RUN_PORT"))
     whitelist = os.environ.get("WHITELIST").split(',')
 else:
-    redis_url = urlparse(os.environ.get("http://localhost:6379"))
+    redis_url = urlparse(os.environ.get("REDIS_URL"))
     current_port = int(os.getenv("FLASK_RUN_PORT"))
     peer_port = 5000 if current_port == 5001 else 5001
     peer_url = f'http://localhost:{peer_port}'
