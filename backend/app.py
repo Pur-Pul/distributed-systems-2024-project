@@ -20,6 +20,8 @@ else:
     peer_url = f'http://localhost:{peer_port}'
     whitelist = ["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"]
 
+print(whitelist)
+
 redis_cache = redis.Redis(host=redis_url.hostname, port=redis_url.port, username=redis_url.username, password=redis_url.password, ssl=True, ssl_cert_reqs=None)
 app =  Flask(__name__)
 CORS(app, origins=whitelist)
