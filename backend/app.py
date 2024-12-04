@@ -18,7 +18,7 @@ else:
     current_port = int(os.getenv("FLASK_RUN_PORT"))
     peer_port = 5000 if current_port == 5001 else 5001
     peer_url = f'http://localhost:{peer_port}'
-    whitelist = ["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"]
+    whitelist = os.environ.get("WHITELIST").split(',')#["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"]
 
 print(whitelist)
 
