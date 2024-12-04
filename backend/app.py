@@ -1,18 +1,28 @@
-import redis
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from bitstring import BitArray
+from dotenv import load_dotenv
+from flask_socketio import Namespace, emit, SocketIO
+from urllib.parse import urlparse
 import os
 import requests
+import redis
 
+if load_dotenv():
+    redis_url = urlparse(os.environ.get("REDIS_URL"))
+    peer_url = os.environ.get("PEER_URL")
+    current_port = int(os.getenv("FLASK_RUN_PORT"))
+else:
+    redis_url = urlparse(os.environ.get("http://localhost:6379"))
+    current_port = int(os.getenv("FLASK_RUN_PORT"))
+    peer_port = 5000 if current_port == 5001 else 5001
+    peer_url = f'http://localhost:{peer_port}'
 
-from flask_socketio import Namespace, emit, SocketIO
-
+redis_cache = redis.Redis(host=redis_url.hostname, port=redis_url.port, username=redis_url.username, password=redis_url.password, ssl=True, ssl_cert_reqs=None)
 app =  Flask(__name__)
-current_port = int(os.getenv("FLASK_RUN_PORT"))
-peer_port = 5000 if current_port == 5001 else 5001 
 CORS(app, origins=["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"])
-redis_cache = redis.Redis()
+
+
 socketio = SocketIO(app, cors_allowed_origins=["http://localhost:5001", "http://localhost:5002", "http://localhost:5173"])
 
 @app.route("/", methods=['GET'])
@@ -49,8 +59,8 @@ def handle_write(json):
     print('received json: ' + str(json))
     index = int(json['data'])
     if (index > 500_000 and current_port == 5000) or (index < 500_000 and current_port == 5001):
-        peer_url = f"http://localhost:{peer_port}/update/{index}"
-        peer_response =requests.post(peer_url)
+        #peer_url = f"http://localhost:{peer_port}/update/{index}"
+        peer_response =requests.post(peer_url+f'/update{index}')
         if peer_response.status_code == 200:
             response_data = peer_response.json()
             emit('update', response_data, broadcast=True)
@@ -63,9 +73,9 @@ def handle_write(json):
     notify_peer(index, value)
 
 def notify_peer(index, value):
-    peer_url = f"http://localhost:{peer_port}/notify"
+    #peer_url = f"http://localhost:{peer_port}/notify"
     data = {'index': index, 'value': value}
-    requests.post(peer_url, json=data)
+    requests.post(peer_url+'/notify', json=data)
 
 @app.route("/notify", methods=["POST"])
 def notify():
