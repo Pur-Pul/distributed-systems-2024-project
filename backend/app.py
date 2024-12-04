@@ -8,17 +8,13 @@ import os
 import requests
 import redis
 
-if load_dotenv():
-    redis_url = urlparse(os.environ.get("REDIS_URL"))
-    peer_url = os.environ.get("PEER_URL")
-    current_port = int(os.getenv("FLASK_RUN_PORT"))
-    whitelist = os.environ.get("WHITELIST").split(',')
-else:
-    redis_url = urlparse(os.environ.get("REDIS_URL"))
-    current_port = int(os.getenv("FLASK_RUN_PORT"))
-    peer_port = 5000 if current_port == 5001 else 5001
-    peer_url = os.environ.get("PEER_URL") #f'http://localhost:{peer_port}'
-    whitelist = os.environ.get("WHITELIST").split(',')#["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"]
+load_dotenv():
+  
+
+redis_url = urlparse(os.environ.get("REDIS_URL"))
+flask_index = int(os.getenv("FLASK_INDEX"))
+peer_url = os.environ.get("PEER_URL") 
+whitelist = os.environ.get("WHITELIST").split(',')
 
 print(whitelist)
 
@@ -60,7 +56,7 @@ def handle_state(json):
 def handle_write(json):
     print('received json: ' + str(json))
     index = int(json['data'])
-    if (index > 500_000 and current_port == 5000) or (index < 500_000 and current_port == 5001):
+    if (index > 500_000 and flask_index == 0) or (index < 500_000 and flask_index == 1):
         #peer_url = f"http://localhost:{peer_port}/update/{index}"
         peer_response =requests.post(peer_url+f'/update{index}')
         if peer_response.status_code == 200:

@@ -84,9 +84,6 @@ let flask;
 if (initialIndex <= 500_000) {
     console.log(import.meta.env.VITE_FLASK1_URL);
     console.log(import.meta.env.VITE_FLASK2_URL);
-    
-    
-
     if (import.meta.env.VITE_FLASK1_URL) {
         flask = io(import.meta.env.VITE_FLASK1_URL)
     } else {

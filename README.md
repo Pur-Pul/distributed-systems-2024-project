@@ -9,7 +9,7 @@ How to run backends:
 - install redis and start the redis server with `redis-server`
 - create a python virtual environment and enter it
 - install requirements in venv `pip install -r requirements.txt`
-- Add the following environment variables: `REDIS_URL`, `FLASK_RUN_PORT` and `PEER_URL`
+- Add the following environment variables: `REDIS_URL`, `FLASK_INDEX`, `WHITELIST` and `PEER_URL`
 - The command `gunicorn app:app` starts the server.
 
 
