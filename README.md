@@ -9,4 +9,8 @@ How to run backends:
 - install redis and start the redis server with `redis-server`
 - create a python virtual environment and enter it
 - install requirements in venv `pip install -r requirements.txt`
+- Add the following environment variables: `REDIS_URL`, `FLASK_RUN_PORT` and `PEER_URL`
+- The command `gunicorn app:app` starts the server.
+
+
 - start the backends with `$env:FLASK_RUN_PORT = 5000; flask run` and `$env:FLASK_RUN_PORT = 5001; flask run` (might be slightly different for non Windows systems)
