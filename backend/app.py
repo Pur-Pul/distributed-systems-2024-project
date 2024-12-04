@@ -12,18 +12,20 @@ if load_dotenv():
     redis_url = urlparse(os.environ.get("REDIS_URL"))
     peer_url = os.environ.get("PEER_URL")
     current_port = int(os.getenv("FLASK_RUN_PORT"))
+    whitelist = os.environ.get("WHITELIST").split(',')
 else:
     redis_url = urlparse(os.environ.get("http://localhost:6379"))
     current_port = int(os.getenv("FLASK_RUN_PORT"))
     peer_port = 5000 if current_port == 5001 else 5001
     peer_url = f'http://localhost:{peer_port}'
+    whitelist = ["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"]
 
 redis_cache = redis.Redis(host=redis_url.hostname, port=redis_url.port, username=redis_url.username, password=redis_url.password, ssl=True, ssl_cert_reqs=None)
 app =  Flask(__name__)
-CORS(app, origins=["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"])
+CORS(app, origins=whitelist)
 
 
-socketio = SocketIO(app, cors_allowed_origins=["http://localhost:5001", "http://localhost:5002", "http://localhost:5173"])
+socketio = SocketIO(app, cors_allowed_origins=whitelist)
 
 @app.route("/", methods=['GET'])
 def index():
