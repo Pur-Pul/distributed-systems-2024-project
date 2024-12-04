@@ -21,7 +21,7 @@ print(whitelist)
 redis_cache = redis.Redis(host=redis_url.hostname, port=redis_url.port, username=redis_url.username, password=redis_url.password, ssl=True, ssl_cert_reqs=None)
 app =  Flask(__name__)
 CORS(app, origins=whitelist)
-socketio = SocketIO(app, cors_allowed_origins=whitelist)
+socketio = SocketIO(app, host='0.0.0.0', port='8000', cors_allowed_origins=whitelist)
 
 @app.route("/", methods=['GET'])
 def index():
