@@ -58,7 +58,7 @@ def handle_write(json):
     index = int(json['data'])
     if (index > 500_000 and flask_index == 1) or (index < 500_000 and flask_index == 0):
         #peer_url = f"http://localhost:{peer_port}/update/{index}"
-        peer_response =requests.post(peer_url+f'/update{index}')
+        peer_response =requests.post(peer_url+f'/update/{index}')
         if peer_response.status_code == 200:
             response_data = peer_response.json()
             emit('update', response_data, broadcast=True)
