@@ -80,24 +80,24 @@ const renderCheckboxes = (state, flask) => {
 let scrollTimeout;
 let state;
 let initialIndex = Math.floor(Math.random() * TOTAL_CHECKBOXES);
-let flask;
+let flask_url
 if (initialIndex <= 500_000) {
-    console.log(import.meta.env.VITE_FLASK1_URL);
-    console.log(import.meta.env.VITE_FLASK2_URL);
     if (import.meta.env.VITE_FLASK1_URL) {
-        flask = io(import.meta.env.VITE_FLASK1_URL)
+        flask_url = import.meta.env.VITE_FLASK1_URL
     } else {
-        flask = io('http://localhost:5000')
+        flask_url = 'http://localhost:5000'
     }
         
 } else {
     if (import.meta.env.VITE_FLASK2_URL) {
-        flask = io(import.meta.env.VITE_FLASK2_URL)
+        flask_url = import.meta.env.VITE_FLASK2_URL
     } else {
-        flask = io('http://localhost:5001')
+        flask_url = 'http://localhost:5001'
     }
 }
 
+let flask = io(flask_url)
+console.log(`connected to ${flask_url}`)
 
 flask.on('connect', function() {
     flask.emit('state', {data: 'state'});
