@@ -81,26 +81,29 @@ let scrollTimeout;
 let state;
 let initialIndex = Math.floor(Math.random() * TOTAL_CHECKBOXES);
 let flask_url
+
+const flask1_url = import.meta.env.VITE_FLASK1_URL ? import.meta.env.VITE_FLASK1_URL : 'http://localhost:5000'
+const flask2_url = import.meta.env.VITE_FLASK1_URL ? import.meta.env.VITE_FLASK2_URL : 'http://localhost:5001'
+
 if (initialIndex <= 500_000) {
-    if (import.meta.env.VITE_FLASK1_URL) {
-        flask_url = import.meta.env.VITE_FLASK1_URL
-    } else {
-        flask_url = 'http://localhost:5000'
-    }
-        
+    flask_url = flask1_url;
 } else {
-    if (import.meta.env.VITE_FLASK2_URL) {
-        flask_url = import.meta.env.VITE_FLASK2_URL
-    } else {
-        flask_url = 'http://localhost:5001'
-    }
+    flask_url = flask2_url;
 }
 
 let flask = io(flask_url)
-console.log(`connected to ${flask_url}`)
+
 
 flask.on('connect', function() {
+    console.log(`connected to ${flask_url}`);
     flask.emit('state', {data: 'state'});
+});
+
+flask.on('connect_error', function() {
+    console.log(`failed to connect to ${flask_url}`);
+    flask_url = (flask_url === flask1_url) ? flask2_url : flask1_url;
+    flask.io.uri = flask_url
+    flask.connect()
 });
 
 flask.on("state", (msg) => {

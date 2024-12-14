@@ -12,6 +12,12 @@ load_dotenv()
   
 
 redis_url = urlparse(os.environ.get("REDIS_URL"))
+socket_url = urlparse(os.environ.get("SOCKET_URL"))
+if os.environ.get("SOCKET_URL") == None:
+    socket_url = urlparse('http://0.0.0.0:8000')
+print(socket_url.hostname)
+print(socket_url.port)
+
 flask_index = int(os.getenv("FLASK_INDEX"))
 peer_url = os.environ.get("PEER_URL") 
 whitelist = os.environ.get("WHITELIST").split(',')
@@ -21,7 +27,7 @@ print(whitelist)
 redis_cache = redis.Redis(host=redis_url.hostname, port=redis_url.port, username=redis_url.username, password=redis_url.password, ssl=True, ssl_cert_reqs=None)
 app =  Flask(__name__)
 CORS(app, origins=whitelist)
-socketio = SocketIO(app, host='0.0.0.0', port='8000', cors_allowed_origins=whitelist)
+socketio = SocketIO(app, host=socket_url.hostname, port=socket_url.port, cors_allowed_origins=whitelist)
 
 @app.route("/", methods=['GET'])
 def index():
@@ -57,7 +63,6 @@ def handle_write(json):
     print('received json: ' + str(json))
     index = int(json['data'])
     if (index > 500_000 and flask_index == 0) or (index < 500_000 and flask_index == 1):
-        #peer_url = f"http://localhost:{peer_port}/update/{index}"
         peer_response =requests.post(peer_url+f'/update/{index}')
         if peer_response.status_code == 200:
             response_data = peer_response.json()
@@ -71,7 +76,6 @@ def handle_write(json):
     notify_peer(index, value)
 
 def notify_peer(index, value):
-    #peer_url = f"http://localhost:{peer_port}/notify"
     data = {'index': index, 'value': value}
     requests.post(peer_url+'/notify', json=data)
 

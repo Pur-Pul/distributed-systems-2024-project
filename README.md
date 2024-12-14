@@ -13,5 +13,7 @@ How to run backends:
     - `REDIS_URL` (The url to the redis server)
     - `FLASK_INDEX` (0 or 1 depending on which flask server it is)
     - `WHITELIST` (The URLS from which HTTP requests are allowed separated by comma)
+    - `SOCKET_URL` (The URL that flask hosts the websocket on. Default: `0.0.0.0:8000`)
     - `PEER_URL` (The URL of the other flask server)
-- The command `gunicorn app:app` starts the server.
+- The command `gunicorn --config gevent_config.py -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker app:app` starts the server in production mode (doesn't work on windows).
+- The command `flask run` start the server in development mode.
