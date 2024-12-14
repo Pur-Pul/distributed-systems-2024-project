@@ -28,6 +28,8 @@ redis_cache = redis.Redis(host=redis_url.hostname, port=redis_url.port, username
 app =  Flask(__name__)
 CORS(app, origins=whitelist)
 socketio = SocketIO(app, host=socket_url.hostname, port=socket_url.port, cors_allowed_origins=whitelist)
+failed_consecutive_connections = 0
+
 
 @app.route("/", methods=['GET'])
 def index():
@@ -62,18 +64,35 @@ def handle_state(json):
 def handle_write(json):
     print('received json: ' + str(json))
     index = int(json['data'])
-    if (index > 500_000 and flask_index == 0) or (index < 500_000 and flask_index == 1):
-        peer_response =requests.post(peer_url+f'/update/{index}')
-        if peer_response.status_code == 200:
-            response_data = peer_response.json()
-            emit('update', response_data, broadcast=True)
-        return
+    global failed_consecutive_connections
+    if failed_consecutive_connections < 10 and ((index > 500_000 and flask_index == 0) or (index < 500_000 and flask_index == 1)):
+        try:
+            peer_response =requests.post(peer_url+f'/update/{index}')
+            if peer_response.status_code == 200:
+                response_data = peer_response.json()
+                emit('update', response_data, broadcast=True)
+                failed_consecutive_connections = 0
+                return
+        except requests.exceptions.RequestException:
+            failed_consecutive_connections += 1
+            print(f'Connection to peer failed. {failed_consecutive_connections} out of 10. Taking over.')
+    elif failed_consecutive_connections >= 10:
+        print('Connection to peer has failed too many times. Peer is ignored.')
+
     value = redis_cache.getbit('state', index)
     value = (value + 1) % 2
     redis_cache.setbit('state', index, value)
     response = {'index' : index, 'value' : value}
     emit('update', response, broadcast = True)
-    notify_peer(index, value)
+    if failed_consecutive_connections < 10:
+        try:
+            notify_peer(index, value)
+            failed_consecutive_connections = 0
+        except requests.exceptions.RequestException:
+            failed_consecutive_connections += 1
+            print(f'Connection to peer failed. {failed_consecutive_connections} out of 10.')
+            
+    
 
 def notify_peer(index, value):
     data = {'index': index, 'value': value}
