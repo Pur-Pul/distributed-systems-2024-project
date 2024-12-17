@@ -1,5 +1,7 @@
 # Distributed Systems Project 2024
 
+Deployed on Render (It may take some time to load): https://distributed-systems-2024-project-1.onrender.com/
+
 How to run frontend:
 - npm install
 - npm start
